@@ -34,9 +34,9 @@ jobs:
       - name: رفع/اضافة التشغيل السابق
         run: |
           echo "📥 جاري تحميل البيانات من فرع التخزين..."
-          if git fetch origin bot-data-storage 2>/dev/null; then
+          if git fetch origin bot-final-storage 2>/dev/null; then
             echo "✅ تم العثور على فرع التخزين"
-            git checkout origin/bot-data-storage -- . 2>/dev/null || echo "⚠️ لا توجد بيانات سابقة"
+            git checkout origin/bot-final-storage -- . 2>/dev/null || echo "⚠️ لا توجد بيانات سابقة"
             echo "✅ تم استبدال الملفات القديمة بنسخة التخزين"
           else
             echo "⚠️ لا يوجد فرع تخزين، سيبدأ السورس ببيانات جديدة"
@@ -67,16 +67,16 @@ jobs:
         if: always()
         run: |
           git checkout main
-          git checkout bot-data-storage 2>/dev/null || git checkout -b bot-data-storage
+          git checkout bot-final-storage 2>/dev/null || git checkout -b bot-final-storage
           echo "main.py" >> .gitignore
           echo "data.py" >> .gitignore
           echo "FINAL/" >> .gitignore
           git add --all
           git commit -m "🤖 Auto-update bot data - $(date +'%Y-%m-%d %H:%M:%S')" || echo "ℹ️ لا توجد تغييرات للحفظ"
-          git push origin bot-data-storage --force || echo "❌ فشل رفع البيانات"
+          git push origin bot-final-storage --force || echo "❌ فشل رفع البيانات"
           git checkout main
 
       - name: تاكيد العمليات
         run: |
           echo "✅ العملية انتهت بنجاح"
-          echo "📦 البيانات محفوظة في فرع: bot-data-storage"
+          echo "📦 البيانات محفوظة في فرع: bot-final-storage"
