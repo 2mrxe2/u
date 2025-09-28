@@ -1,4 +1,5 @@
 watchdog
+g4f
 google-generativeai
 mutagen
 git+https://github.com/pytgcalls/pytgcalls        
