@@ -2,13 +2,13 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# تثبيت git وأدوات أساسية
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
-
-COPY requirements.txt /app/
+# نسخ الملفات المطلوبة
+COPY FINAL/ FINAL/
+COPY requirements.txt .
+COPY *.session .
+COPY main.py .
+COPY data.py .
 
 RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . /app
 
 CMD ["python", "main.py"]
