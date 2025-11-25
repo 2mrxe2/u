@@ -124,7 +124,9 @@ def initialize_db():
             bot_status BOOLEAN,
             stopped_chats TEXT,
             trigger_name TEXT,
-            api_key TEXT
+            api_key TEXT,
+            current_model_index INTEGER DEFAULT 0,
+            custom_system_prompt TEXT
         )
     ''')
     cursor.execute('''
@@ -625,10 +627,12 @@ def save_hunting_status(user_id, status_data):
     conn.commit()
     conn.close()
 
+
+
 def get_ai_settings(user_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT bot_status, stopped_chats, trigger_name, api_key FROM user_ai_settings WHERE user_id = ?', (user_id,))
+    cursor.execute('SELECT bot_status, stopped_chats, trigger_name, api_key, current_model_index, custom_system_prompt FROM user_ai_settings WHERE user_id = ?', (user_id,))
     row = cursor.fetchone()
     conn.close()
     if row:
@@ -636,14 +640,18 @@ def get_ai_settings(user_id):
             "bot_status": bool(row['bot_status']),
             "stopped_chats": set(json.loads(row['stopped_chats'])) if row['stopped_chats'] else set(),
             "trigger_name": row['trigger_name'],
-            "api_key": row['api_key']
+            "api_key": row['api_key'],
+            "current_model_index": row['current_model_index'] if row['current_model_index'] is not None else 0,
+            "custom_system_prompt": row['custom_system_prompt']
         }
     else:
         return {
             "bot_status": False,
             "stopped_chats": set(),
             "trigger_name": None,
-            "api_key": None
+            "api_key": None,
+            "current_model_index": 0,
+            "custom_system_prompt": None
         }
 
 def save_ai_settings(user_id, settings):
@@ -653,13 +661,15 @@ def save_ai_settings(user_id, settings):
     stopped_chats = json.dumps(list(settings.get("stopped_chats", set())))
     trigger_name = settings.get("trigger_name")
     api_key = settings.get("api_key")
+    current_model_index = settings.get("current_model_index", 0)
+    custom_system_prompt = settings.get("custom_system_prompt")
+    
     cursor.execute('''
-        INSERT OR REPLACE INTO user_ai_settings (user_id, bot_status, stopped_chats, trigger_name, api_key)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (user_id, bot_status, stopped_chats, trigger_name, api_key))
+        INSERT OR REPLACE INTO user_ai_settings (user_id, bot_status, stopped_chats, trigger_name, api_key, current_model_index, custom_system_prompt)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (user_id, bot_status, stopped_chats, trigger_name, api_key, current_model_index, custom_system_prompt))
     conn.commit()
     conn.close()
-
 
 def get_simulator_settings(user_id):
     conn = get_db_connection()
@@ -999,6 +1009,18 @@ def save_tag_status(user_id, chat_id, status_data):
     conn.commit()
     conn.close()
 
+
+# بيانات نظام حماية النشر
+_protection_status = {}
+
+def get_protection_status(user_id):
+    """الحصول على حالة نظام الحماية للمستخدم"""
+    return _protection_status.get(user_id, False)
+
+def save_protection_status(user_id, status):
+    """حفظ حالة نظام الحماية للمستخدم"""
+    _protection_status[user_id] = status
+
 def get_id_template(user_id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -1012,11 +1034,15 @@ def get_id_template(user_id):
 ⋆ـ┄─┄─┄─┄─┄──┄─┄─┄┄ـ⋆
 ** ✦╎الاسـم    ⇠ ** {fullname}
 ** ✦╎المعـرف  ⇠ ** {username}
+** ✦╎المستوى ⇠ ** {level}
 ** ✦╎الايـدي   ⇠ ** `{userid}`
+** ✦╎ الهدايا  ⇠ ** {gifts}
 ** ✦╎الرتبـــه  ⇠ {rank} **
 ** ✦╎الصـور   ⇠ ** {count}
 ** ✦╎الحساب ⇠ ** {mention}
+** ✦╎التصنيف ⇠ ** {rating}
 ** ✦╎البايـو    ⇠ ** {bio}
+** ✦╎الإنشـاء   ⇠ ** {creation_date}
 ⋆ـ┄─┄─┄─┄─┄──┄─┄─┄┄ـ⋆
 """
 
