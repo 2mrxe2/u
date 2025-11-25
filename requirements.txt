@@ -1,8 +1,9 @@
-watchdog
-g4f
 google-generativeai
+requests
+g4f
 mutagen
-git+https://github.com/pytgcalls/pytgcalls        
+tgcalls==3.0.0.dev6
+git+https://github.com/pytgcalls/pytgcalls.git@dev
 telethon
 aiocron
 ffmpeg
